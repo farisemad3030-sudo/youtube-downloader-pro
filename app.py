@@ -606,7 +606,7 @@ class YouTubeDownloaderApp(ctk.CTk):
     def _on_download_complete(self):
         self.is_downloading = False
         self.cancel_requested = False
-        self.download_btn.configure(state="normal", text="⬇  Download Now")
+        self.download_btn.configure(state="normal", text="⬇  Download Now (32x Multi-Stream)")
         self.cancel_btn.configure(state="disabled")
         self.progress_bar.set(1.0)
 
@@ -621,7 +621,7 @@ class YouTubeDownloaderApp(ctk.CTk):
     def _on_download_cancelled(self):
         self.is_downloading = False
         self.cancel_requested = False
-        self.download_btn.configure(state="normal", text="⬇  Download Now")
+        self.download_btn.configure(state="normal", text="⬇  Download Now (32x Multi-Stream)")
         self.cancel_btn.configure(state="disabled")
         self.progress_bar.set(0)
         self.overall_progress_bar.set(0)
@@ -631,7 +631,7 @@ class YouTubeDownloaderApp(ctk.CTk):
     def _on_download_error(self, err_msg):
         self.is_downloading = False
         self.cancel_requested = False
-        self.download_btn.configure(state="normal", text="⬇  Download Now")
+        self.download_btn.configure(state="normal", text="⬇  Download Now (32x Multi-Stream)")
         self.cancel_btn.configure(state="disabled")
         self.progress_bar.set(0)
         self.status_var.set("Download failed.")

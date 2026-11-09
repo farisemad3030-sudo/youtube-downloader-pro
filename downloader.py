@@ -256,9 +256,6 @@ def download_media(
             raise DownloadCancelled("Download cancelled by user.")
         return None
 
-    found_bins = setup_environment()
-    aria2_bin = found_bins.get("aria2c.exe")
-
     ydl_opts = {
         "outtmpl": outtmpl,
         "progress_hooks": [hook],
@@ -267,9 +264,9 @@ def download_media(
         "no_warnings": True,
         "no_color": True,
         "windowsfilenames": True,
-        "socket_timeout": 45,
-        "retries": 20,
-        "fragment_retries": 20,
+        "socket_timeout": 30,
+        "retries": 15,
+        "fragment_retries": 15,
         "file_access_retries": 10,
         "extractor_retries": 5,
         "concurrent_fragment_downloads": 32,
@@ -278,12 +275,6 @@ def download_media(
         "noplaylist": not download_playlist,
         "ignoreerrors": True if download_playlist else False,
     }
-
-    if aria2_bin:
-        ydl_opts["external_downloader"] = {"default": aria2_bin}
-        ydl_opts["external_downloader_args"] = {
-            "aria2c": ["-s", "32", "-x", "16", "-j", "32", "-k", "1M", "--min-split-size=1M", "--file-allocation=none"]
-        }
 
     if quality == "Audio Only (MP3)":
         ydl_opts["format"] = "bestaudio/best"
