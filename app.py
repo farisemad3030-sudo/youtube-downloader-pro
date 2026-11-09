@@ -24,6 +24,17 @@ class YouTubeDownloaderApp(ctk.CTk):
         self.geometry("750x880")
         self.minsize(700, 780)
 
+        # Set Window & Taskbar Icon if available
+        base_dir = os.path.dirname(os.path.abspath(__file__)) if "__file__" in globals() else os.getcwd()
+        if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+            base_dir = sys._MEIPASS
+        icon_path = os.path.join(base_dir, "icon.ico")
+        if os.path.exists(icon_path):
+            try:
+                self.iconbitmap(icon_path)
+            except Exception:
+                pass
+
         # Initialize tools
         downloader.setup_environment()
 
