@@ -37,6 +37,8 @@ flowchart TD
 ## Key Features
 
 - **Asynchronous GUI & CLI**: Built on CustomTkinter with multi-threaded background workers, keeping the interface completely responsive during heavy downloads.
+- **16x Multi-Stream Acceleration Engine**: Employs a 16-connection parallel chunk streaming architecture (leveraging `aria2c` and multi-fragment streaming) for line-rate saturation matching standalone download managers.
+- **Direct Neat Download Manager (NeatDM) Integration**: One-click dispatch (`🚀 Send to NeatDM`) and direct stream link extraction (`🔗 Copy Direct Stream Link`) with signature deciphering.
 - **Throttling Bypass & High Speed**: Automatically detects and leverages Deno runtime to solve YouTube client-side JavaScript challenges (`n-sig`), eliminating bandwidth throttling.
 - **Full Playlist Management**:
   - Automatically identifies playlists and item counts.
@@ -133,6 +135,12 @@ python cli.py "https://www.youtube.com/playlist?list=EXAMPLE" --playlist -o "D:/
 
 # Extract audio only in MP3
 python cli.py "https://www.youtube.com/watch?v=EXAMPLE" -f "Audio Only (MP3)"
+
+# Extract and print unthrottled direct stream URL
+python cli.py "https://www.youtube.com/watch?v=EXAMPLE" --direct-url
+
+# Extract and dispatch stream directly to Neat Download Manager
+python cli.py "https://www.youtube.com/watch?v=EXAMPLE" --neatdm
 ```
 
 ---

@@ -141,6 +141,77 @@ def fetch_media_info(url):
                 "webpage_url": info.get("webpage_url", url),
             }
 
+def find_neat_download_manager():
+    """Detect Neat Download Manager executable location on the host machine."""
+    potential_paths = [
+        r"C:\Program Files (x86)\Neat Download Manager\NeatDM.exe",
+        r"C:\Program Files\Neat Download Manager\NeatDM.exe",
+        os.path.expandvars(r"%LOCALAPPDATA%\Programs\Neat Download Manager\NeatDM.exe"),
+    ]
+    for p in potential_paths:
+        if os.path.isfile(p):
+            return p
+    return shutil.which("NeatDM.exe") or shutil.which("NeatDM")
+
+def extract_direct_stream_urls(url, quality="Best Quality (Auto)"):
+    """
+    Extract deciphered, unthrottled direct media stream URLs for export to external download managers (e.g., NeatDM).
+    """
+    setup_environment()
+    ydl_opts = {
+        "quiet": True,
+        "no_warnings": True,
+        "no_color": True,
+        "skip_download": True,
+        "socket_timeout": 30,
+    }
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        info = ydl.extract_info(url, download=False)
+        formats = info.get("formats", [])
+
+        # Filter audio streams
+        audio_formats = [f for f in formats if f.get("acodec") != "none" and f.get("vcodec") == "none"]
+        best_audio = audio_formats[-1] if audio_formats else None
+
+        is_audio = "Audio Only" in quality
+        if is_audio and best_audio:
+            ext_label = best_audio.get("ext") or "audio"
+            return {
+                "title": clean_ansi(info.get("title", "Audio Stream")),
+                "direct_url": best_audio.get("url"),
+                "audio_url": best_audio.get("url"),
+                "is_audio_only": True,
+                "is_muxed": False,
+                "resolution": f"Audio ({ext_label})",
+            }
+
+        max_h = 99999
+        if "1080p" in quality:
+            max_h = 1080
+        elif "720p" in quality:
+            max_h = 720
+        elif "480p" in quality:
+            max_h = 480
+        elif "360p" in quality:
+            max_h = 360
+
+        matching_videos = [f for f in formats if f.get("vcodec") != "none" and (f.get("height") or 0) <= max_h]
+        best_vid = matching_videos[-1] if matching_videos else (formats[-1] if formats else None)
+
+        is_muxed = bool(best_vid and best_vid.get("acodec") != "none")
+        res_label = best_vid.get("resolution") if best_vid else "Best"
+        if not res_label and best_vid and best_vid.get("height"):
+            res_label = f"{best_vid.get('height')}p"
+
+        return {
+            "title": clean_ansi(info.get("title", "Video Stream")),
+            "direct_url": best_vid.get("url") if best_vid else None,
+            "audio_url": best_audio.get("url") if best_audio else None,
+            "is_audio_only": False,
+            "is_muxed": is_muxed,
+            "resolution": res_label or "Best",
+        }
+
 def cleanup_partial_files(target_dir):
     """Safely remove leftover .part and .ytdl files from a directory."""
     if not os.path.exists(target_dir):
@@ -256,6 +327,9 @@ def download_media(
             raise DownloadCancelled("Download cancelled by user.")
         return None
 
+    found_bins = setup_environment()
+    aria2_bin = found_bins.get("aria2c.exe")
+
     ydl_opts = {
         "outtmpl": outtmpl,
         "progress_hooks": [hook],
@@ -269,8 +343,8 @@ def download_media(
         "fragment_retries": 20,
         "file_access_retries": 10,
         "extractor_retries": 5,
-        "concurrent_fragment_downloads": 8,
-        "buffersize": 1024 * 1024,
+        "concurrent_fragment_downloads": 16,
+        "buffersize": 4 * 1024 * 1024,
         "http_chunk_size": 10485760,
         "noplaylist": not download_playlist,
         "ignoreerrors": True if download_playlist else False,

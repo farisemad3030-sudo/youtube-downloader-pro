@@ -111,11 +111,31 @@ def main():
     parser.add_argument("-o", "--output", default=str(Path.home() / "Downloads"),
                         help="Output directory path")
     parser.add_argument("--playlist", action="store_true", help="Download full playlist")
+    parser.add_argument("--direct-url", action="store_true", help="Extract and print unthrottled direct stream URL")
+    parser.add_argument("--neatdm", action="store_true", help="Extract direct stream URL and dispatch directly to Neat Download Manager")
 
     args = parser.parse_args()
 
     if not args.url:
         interactive_mode()
+    elif args.direct_url or args.neatdm:
+        print(f"Fetching direct stream URL for: {args.url} ({args.format})...")
+        try:
+            res = downloader.extract_direct_stream_urls(args.url, args.format)
+            direct_url = res.get("direct_url")
+            print(f"Title:      {res['title']}")
+            print(f"Resolution: {res['resolution']}")
+            print(f"\nDirect URL:\n{direct_url}\n")
+            if args.neatdm:
+                neat_exe = downloader.find_neat_download_manager()
+                if neat_exe:
+                    import subprocess
+                    subprocess.Popen([neat_exe, "-u", direct_url])
+                    print("Dispatched to Neat Download Manager successfully!")
+                else:
+                    print("Neat Download Manager executable was not found on this system.")
+        except Exception as e:
+            print(f"Failed to extract direct stream URL: {e}")
     else:
         os.makedirs(args.output, exist_ok=True)
         print(f"URL:      {args.url}")
