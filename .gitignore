@@ -1,0 +1,71 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions & binaries
+*.so
+*.exe
+*.dll
+*.dylib
+*.apk
+*.aab
+*.msi
+*.bin
+
+# Archives & compressed files
+*.zip
+*.tar.gz
+*.7z
+*.rar
+
+# Model weights & database files
+*.pt
+*.pth
+*.onnx
+*.h5
+*.pkl
+*.db
+*.sqlite
+*.sqlite3
+
+# Distribution / packaging / build artifacts
+build/
+dist/
+*.spec
+*.bat
+YouTubeDownloader-Portable/
+YouTubeDownloader-Portable.zip
+bin/
+
+# Incomplete media / temporary downloads
+*.part
+*.ytdl
+
+# Environments & virtualenvs
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Logs, tokens, and secrets
+*.log
+*token*
+*secret*
+*session*
+*.key
+*.pem
+
+# Editor / IDE directories
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.dart_tool/
+.DS_Store
+Thumbs.db
