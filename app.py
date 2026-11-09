@@ -346,13 +346,13 @@ class YouTubeDownloaderApp(ctk.CTk):
 
     def _build_action_bar(self):
         action_row = ctk.CTkFrame(self.container, fg_color="transparent")
-        action_row.pack(fill="x", pady=(4, 6))
+        action_row.pack(fill="x", pady=(4, 10))
 
         self.download_btn = ctk.CTkButton(
             action_row,
-            text="⬇  Download Now (16x Multi-Stream)",
-            font=ctk.CTkFont(size=14, weight="bold"),
-            height=44,
+            text="⬇  Download Now (32x Multi-Stream)",
+            font=ctk.CTkFont(size=15, weight="bold"),
+            height=46,
             fg_color="#2e7d32",
             hover_color="#1b5e20",
             command=self.start_download
@@ -363,8 +363,8 @@ class YouTubeDownloaderApp(ctk.CTk):
             action_row,
             text="⏹ Cancel",
             font=ctk.CTkFont(size=13, weight="bold"),
-            height=44,
-            width=90,
+            height=46,
+            width=100,
             fg_color="#c62828",
             hover_color="#8e0000",
             state="disabled",
@@ -376,129 +376,11 @@ class YouTubeDownloaderApp(ctk.CTk):
             action_row,
             text="📂 Open Folder",
             font=ctk.CTkFont(size=13),
-            height=44,
-            width=110,
+            height=46,
+            width=120,
             command=self.open_downloads_folder
         )
         self.open_folder_btn.pack(side="left")
-
-        # Row 2: External Download Manager Integration (NeatDM & Direct Link)
-        ext_row = ctk.CTkFrame(self.container, fg_color="transparent")
-        ext_row.pack(fill="x", pady=(0, 10))
-
-        self.neat_btn = ctk.CTkButton(
-            ext_row,
-            text="🚀 Send to Neat Download Manager",
-            font=ctk.CTkFont(size=13, weight="bold"),
-            height=38,
-            fg_color="#1565c0",
-            hover_color="#0d47a1",
-            command=self.send_to_neatdm
-        )
-        self.neat_btn.pack(side="left", fill="x", expand=True, padx=(0, 8))
-
-        self.copy_link_btn = ctk.CTkButton(
-            ext_row,
-            text="🔗 Copy Direct Stream Link",
-            font=ctk.CTkFont(size=13),
-            height=38,
-            fg_color=("gray75", "#37474f"),
-            hover_color=("gray65", "#455a64"),
-            command=self.copy_direct_link
-        )
-        self.copy_link_btn.pack(side="left", fill="x", expand=True)
-
-    def send_to_neatdm(self):
-        url = self.url_var.get().strip()
-        if not url:
-            messagebox.showwarning("Input Required", "Please enter or paste a YouTube URL first.")
-            return
-
-        neat_exe = downloader.find_neat_download_manager()
-        if not neat_exe:
-            messagebox.showerror(
-                "NeatDM Not Found",
-                "Neat Download Manager (NeatDM.exe) was not found on your PC.\n\n"
-                "Please verify that Neat Download Manager is installed in 'Program Files (x86)'."
-            )
-            return
-
-        self.status_var.set("Extracting direct stream link for NeatDM...")
-        self.detail_var.set("Deciphering signature...")
-
-        def worker():
-            try:
-                format_choice = self.format_var.get()
-                stream_info = downloader.extract_direct_stream_urls(url, format_choice)
-                direct_url = stream_info.get("direct_url")
-                if not direct_url:
-                    raise ValueError("Could not extract a valid direct stream URL.")
-
-                # Set to clipboard
-                self.clipboard_clear()
-                self.clipboard_append(direct_url)
-                self.update()
-
-                import subprocess
-                subprocess.Popen([neat_exe, "-u", direct_url])
-
-                def on_success():
-                    self.status_var.set("Dispatched to Neat Download Manager!")
-                    self.detail_var.set("Direct stream URL copied to clipboard")
-                    msg = f"Direct stream URL for:\n'{stream_info['title']}' ({stream_info['resolution']})\n\nwas copied to your clipboard and launched in Neat Download Manager!"
-                    if not stream_info.get("is_muxed") and not stream_info.get("is_audio_only"):
-                        msg += "\n\n💡 Pro-Tip: YouTube serves 1080p/4K video and audio as separate tracks. NeatDM will download the video track. To get merged 1080p/4K video with audio, use the 'Download Now' button in our app."
-                    messagebox.showinfo("Sent to NeatDM", msg)
-
-                self.after(0, on_success)
-            except Exception as e:
-                err = downloader.clean_ansi(str(e))
-                def on_fail():
-                    self.status_var.set("Failed to extract direct stream URL.")
-                    self.detail_var.set("")
-                    messagebox.showerror("Extraction Error", f"Could not extract direct stream URL:\n\n{err}")
-                self.after(0, on_fail)
-
-        threading.Thread(target=worker, daemon=True).start()
-
-    def copy_direct_link(self):
-        url = self.url_var.get().strip()
-        if not url:
-            messagebox.showwarning("Input Required", "Please enter or paste a YouTube URL first.")
-            return
-
-        self.status_var.set("Extracting direct stream URL...")
-        self.detail_var.set("Deciphering signature...")
-
-        def worker():
-            try:
-                format_choice = self.format_var.get()
-                stream_info = downloader.extract_direct_stream_urls(url, format_choice)
-                direct_url = stream_info.get("direct_url")
-                if not direct_url:
-                    raise ValueError("Could not extract a valid direct stream URL.")
-
-                self.clipboard_clear()
-                self.clipboard_append(direct_url)
-                self.update()
-
-                def on_success():
-                    self.status_var.set("Direct stream URL copied to clipboard!")
-                    self.detail_var.set(f"Resolution: {stream_info['resolution']}")
-                    messagebox.showinfo(
-                        "Direct Link Copied",
-                        f"Direct stream URL for:\n'{stream_info['title']}' ({stream_info['resolution']})\n\nhas been copied to your clipboard!\nYou can paste it directly into NeatDM, IDM, VLC, or your browser."
-                    )
-                self.after(0, on_success)
-            except Exception as e:
-                err = downloader.clean_ansi(str(e))
-                def on_fail():
-                    self.status_var.set("Failed to extract direct stream URL.")
-                    self.detail_var.set("")
-                    messagebox.showerror("Extraction Error", f"Could not extract direct stream link:\n\n{err}")
-                self.after(0, on_fail)
-
-        threading.Thread(target=worker, daemon=True).start()
 
     def _change_theme(self, choice):
         ctk.set_appearance_mode(choice.lower())
